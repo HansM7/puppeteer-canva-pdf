@@ -35,4 +35,34 @@ export class ReportController {
       res.json(response);
     }
   }
+
+  async crearInformeParteDiario(req: Request, res: Response) {
+    const response = await reportService.createInformeParteDiario();
+
+    if (response.success && response.payload) {
+      const filePath = path.resolve(
+        __dirname,
+        `reports-pd/informe-${response.payload.user_id}-${response.payload.id}.pdf`
+      );
+
+      if (fs.existsSync(filePath)) {
+        const stat = fs.statSync(filePath);
+        res.setHeader("Content-Length", stat.size);
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="informe-parte-diario.pdf"`
+        );
+
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      } else {
+        res
+          .status(404)
+          .json({ success: false, message: "Archivo no encontrado" });
+      }
+    } else {
+      res.json(response);
+    }
+  }
 }
